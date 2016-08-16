@@ -2,7 +2,7 @@ package com.enginizer.model.dto;
 
 
 /**
- * Created by sorinavasiliu on 7/20/16.
+ * DTO containing information about a user.
  */
 public class UserDTO {
     private int userId;

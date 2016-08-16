@@ -11,12 +11,12 @@ import java.util.*;
 /**
  * Created by sorinavasiliu on 7/3/16.
  */
-public final class  JwtUserFactory {
-    private JwtUserFactory() {
+public final class JWTUserFactory {
+    private JWTUserFactory() {
     }
 
-    public static JwtUser create(User user) {
-        return new JwtUser(
+    public static JWTUser create(User user) {
+        return new JWTUser(
                 new Long(user.getId()),
                 user.getMail(),
                 user.getMail(),

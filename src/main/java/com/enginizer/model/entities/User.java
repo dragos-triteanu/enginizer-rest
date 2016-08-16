@@ -8,7 +8,7 @@ import javax.persistence.*;
 import java.sql.Timestamp;
 
 /**
- * Entity class for modeling a user, in the db 'users' table.
+ * Entity class for modeling a user, in the db 'user' table.
  */
 @Entity
 @Table(name = "user")

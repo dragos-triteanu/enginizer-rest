@@ -3,8 +3,8 @@ package com.enginizer.resources;
 import com.enginizer.config.SecurityConfig;
 import com.enginizer.model.dto.UserDTO;
 import com.enginizer.model.entities.User;
-import com.enginizer.security.jwt.JwtTokenUtil;
-import com.enginizer.security.jwt.JwtUser;
+import com.enginizer.security.jwt.JWTUtil;
+import com.enginizer.security.jwt.JWTUser;
 import com.enginizer.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.servlet.http.HttpServletRequest;
 
 /**
- * Created by sorinavasiliu on 7/20/16.
+ * REST resource for exposing an API for managing a User entity.
  */
 @RestController
 public class UserResource {
@@ -28,7 +28,7 @@ public class UserResource {
     private String tokenHeader;
 
     @Autowired
-    private JwtTokenUtil jwtTokenUtil;
+    private JWTUtil JWTUtil;
 
     @Autowired
     private UserService userService;
@@ -41,11 +41,11 @@ public class UserResource {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token not found");
         }
 
-        if (!jwtTokenUtil.validateToken(token, SecurityConfig.getCurrentUser())) {
+        if (!JWTUtil.validateToken(token, SecurityConfig.getCurrentUser())) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
         }
 
-        String mail = jwtTokenUtil.getMailFromToken(token);
+        String mail = JWTUtil.getMailFromToken(token);
         UserDTO user = userService.findUserDtoByEmailAddress(mail);
 
         return ResponseEntity.ok(user);
@@ -59,11 +59,11 @@ public class UserResource {
         }
 
         UserDetails userDetails = SecurityConfig.getCurrentUser();
-        if (!jwtTokenUtil.validateToken(token, userDetails)) {
+        if (!JWTUtil.validateToken(token, userDetails)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
         }
 
-        user.setId(((JwtUser) userDetails).getId().intValue());
+        user.setId(((JWTUser) userDetails).getId().intValue());
         userService.updateUserInfo(user);
 
         return ResponseEntity.status(HttpStatus.OK).body("User info updated");

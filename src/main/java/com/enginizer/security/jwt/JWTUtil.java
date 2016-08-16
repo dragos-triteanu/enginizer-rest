@@ -18,7 +18,7 @@ import java.util.Map;
  * Created by sorinavasiliu on 7/3/16.
  */
 @Component
-public class JwtTokenUtil implements Serializable {
+public class JWTUtil implements Serializable {
 
     private static final long serialVersionUID = -3301605591108950415L;
 
@@ -166,7 +166,7 @@ public class JwtTokenUtil implements Serializable {
         if(userDetails == null)
             return false;
 
-        JwtUser user = (JwtUser) userDetails;
+        JWTUser user = (JWTUser) userDetails;
         final String username = getMailFromToken(token);
         return (
                 username.equals(user.getUsername())

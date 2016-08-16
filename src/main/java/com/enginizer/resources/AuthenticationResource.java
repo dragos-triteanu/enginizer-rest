@@ -1,9 +1,9 @@
 package com.enginizer.resources;
 
 import com.enginizer.model.entities.User;
-import com.enginizer.security.jwt.JwtToken;
-import com.enginizer.security.jwt.JwtTokenUtil;
-import com.enginizer.security.jwt.JwtUser;
+import com.enginizer.security.jwt.JWTTokenHolder;
+import com.enginizer.security.jwt.JWTUtil;
+import com.enginizer.security.jwt.JWTUser;
 import com.enginizer.service.AuthenticationService;
 import com.enginizer.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,19 +25,19 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.servlet.http.HttpServletRequest;
 
 /**
- * Created by sorinavasiliu on 7/3/16.
+ * REST resource that exposes an api for authenticating via the server.
  */
 @RestController
 public class AuthenticationResource {
 
     @Value("${jwt.header}")
-    private String tokenHeader;
+    private String authenticationHeader;
 
     @Autowired
     private AuthenticationManager authenticationManager;
 
     @Autowired
-    private JwtTokenUtil jwtTokenUtil;
+    private JWTUtil JWTUtil;
 
     @Autowired
     private AuthenticationService userDetailsService;
@@ -56,9 +56,9 @@ public class AuthenticationResource {
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         User userDetails = userService.findUserByEmailAddress(user.getMail());
-        final String token = jwtTokenUtil.generateToken(userDetails, device);
+        final String token = JWTUtil.generateToken(userDetails, device);
 
-        return ResponseEntity.ok(new JwtToken(token));
+        return ResponseEntity.ok(new JWTTokenHolder(token));
     }
 
     @RequestMapping(value = "${jwt.route.authentication.createAccount}", method = RequestMethod.POST)
@@ -86,19 +86,19 @@ public class AuthenticationResource {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("The account couldn't be created.");
         }
 
-        final String token = jwtTokenUtil.generateToken(userDetails, device);
-        return ResponseEntity.ok(new JwtToken(token));
+        final String token = JWTUtil.generateToken(userDetails, device);
+        return ResponseEntity.ok(new JWTTokenHolder(token));
     }
 
     @RequestMapping(value = "${jwt.route.authentication.refresh}", method = RequestMethod.GET)
     public ResponseEntity<?> refreshAndGetAuthenticationToken(HttpServletRequest request) {
-        String token = request.getHeader(tokenHeader);
-        String username = jwtTokenUtil.getMailFromToken(token);
-        JwtUser user = (JwtUser) userDetailsService.loadUserByUsername(username);
+        String token = request.getHeader(authenticationHeader);
+        String username = JWTUtil.getMailFromToken(token);
+        JWTUser user = (JWTUser) userDetailsService.loadUserByUsername(username);
 
-        if (jwtTokenUtil.canTokenBeRefreshed(token, user.getLastPasswordResetDate())) {
-            String refreshedToken = jwtTokenUtil.refreshToken(token);
-            return ResponseEntity.ok(new JwtToken(refreshedToken));
+        if (JWTUtil.canTokenBeRefreshed(token, user.getLastPasswordResetDate())) {
+            String refreshedToken = JWTUtil.refreshToken(token);
+            return ResponseEntity.ok(new JWTTokenHolder(refreshedToken));
         } else {
             return ResponseEntity.badRequest().body(null);
         }

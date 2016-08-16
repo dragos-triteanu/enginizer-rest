@@ -1,8 +1,8 @@
 package com.enginizer.config;
 
-import com.enginizer.security.jwt.JwtAuthenticationEntryPoint;
-import com.enginizer.security.jwt.JwtAuthenticationTokenFilter;
-import com.enginizer.security.jwt.JwtUser;
+import com.enginizer.security.jwt.JWTAuthenticationEntryPoint;
+import com.enginizer.security.jwt.JWTAuthenticationTokenFilter;
+import com.enginizer.security.jwt.JWTUser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,9 +18,13 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+
+/**
+ * Configuration for basic security at api level. All resources require that the caller present a
+ * token.
+ */
 @SuppressWarnings("SpringJavaAutowiringInspection")
 @Configuration
 @EnableWebSecurity
@@ -28,7 +32,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
-    private JwtAuthenticationEntryPoint unauthorizedHandler;
+    private JWTAuthenticationEntryPoint unauthorizedHandler;
 
     @Autowired
     private UserDetailsService userDetailsService;
@@ -79,15 +83,15 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     @Bean
-    public JwtAuthenticationTokenFilter authenticationTokenFilterBean() throws Exception {
-        JwtAuthenticationTokenFilter authenticationTokenFilter = new JwtAuthenticationTokenFilter();
+    public JWTAuthenticationTokenFilter authenticationTokenFilterBean() throws Exception {
+        JWTAuthenticationTokenFilter authenticationTokenFilter = new JWTAuthenticationTokenFilter();
         authenticationTokenFilter.setAuthenticationManager(authenticationManagerBean());
         return authenticationTokenFilter;
     }
 
 
     public static UserDetails getCurrentUser(){
-        return SecurityContextHolder.getContext().getAuthentication().getPrincipal() instanceof JwtUser ?
+        return SecurityContextHolder.getContext().getAuthentication().getPrincipal() instanceof JWTUser ?
                 (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal() : null;
     }
 }

@@ -22,13 +22,13 @@ import java.io.IOException;
  * Filter class for parsing a JWT token and extracting the authentication information from the Authorization header.
  * This class parses the JWT token and
  */
-public class JwtAuthenticationTokenFilter  extends UsernamePasswordAuthenticationFilter {
+public class JWTAuthenticationTokenFilter extends UsernamePasswordAuthenticationFilter {
 
     @Autowired
     private UserDetailsService userDetailsService;
 
     @Autowired
-    private JwtTokenUtil jwtTokenUtil;
+    private JWTUtil JWTUtil;
 
     @Value("${jwt.header}")
     private String tokenHeader;
@@ -39,12 +39,12 @@ public class JwtAuthenticationTokenFilter  extends UsernamePasswordAuthenticatio
         String authToken = httpRequest.getHeader(tokenHeader);
         // authToken.startsWith("Bearer ")
         // String authToken = header.substring(7);
-        String username = jwtTokenUtil.getMailFromToken(authToken);
+        String username = JWTUtil.getMailFromToken(authToken);
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             try {
                 UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
-                if (jwtTokenUtil.validateToken(authToken, userDetails)) {
+                if (JWTUtil.validateToken(authToken, userDetails)) {
                     UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                     authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(httpRequest));
                     SecurityContextHolder.getContext().setAuthentication(authentication);
