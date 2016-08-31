@@ -1,11 +1,14 @@
 package com.enginizer.resources;
 
+import com.enginizer.model.dto.AuthenticationDTO;
+import com.enginizer.model.dto.CreateUserDTO;
 import com.enginizer.model.entities.User;
 import com.enginizer.security.jwt.JWTTokenHolder;
 import com.enginizer.security.jwt.JWTUtil;
 import com.enginizer.security.jwt.JWTUser;
 import com.enginizer.service.AuthenticationService;
 import com.enginizer.service.UserService;
+import io.swagger.annotations.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -17,16 +20,14 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 
 /**
  * REST resource that exposes an api for authenticating via the server.
  */
+@Api(value = "Authentication", basePath = "/api")
 @RestController
 public class AuthenticationResource {
 
@@ -45,37 +46,41 @@ public class AuthenticationResource {
     @Autowired
     private UserService userService;
 
-    @RequestMapping(value = "${jwt.route.authentication.path}", method = RequestMethod.POST)
-    public ResponseEntity<?> createAuthenticationToken(@RequestBody User user, Device device)
+    @ApiOperation(value = "Authenticate", notes = "Provides authentication for a user to use the API.")
+    @RequestMapping(value = "api/authentication", method = RequestMethod.POST, consumes = "application/json")
+    public ResponseEntity<?> authenticate(@RequestBody @ApiParam(name = "auth", required = true, defaultValue = "XXX") AuthenticationDTO auth,
+                                          @ApiParam(value = "device" ,hidden = true) Device device)
             throws AuthenticationException {
 
         // Perform the security
         final Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(user.getMail(),user.getPassword()));
+                new UsernamePasswordAuthenticationToken(auth.getEmail(), auth.getPassword()));
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        User userDetails = userService.findUserByEmailAddress(user.getMail());
+        User userDetails = userService.findUserByEmailAddress(auth.getEmail());
         final String token = JWTUtil.generateToken(userDetails, device);
 
         return ResponseEntity.ok(new JWTTokenHolder(token));
     }
 
-    @RequestMapping(value = "${jwt.route.authentication.createAccount}", method = RequestMethod.POST)
-    public ResponseEntity<?> createNewAccount(@RequestBody User user, Device device) {
+    @ApiOperation(value = "Register", notes = "Provides ability so that user can register.")
+    @RequestMapping(value = "api/register", method = RequestMethod.POST)
+    public ResponseEntity<?> register(@RequestBody @ApiParam(name = "user", required = true, defaultValue = "XXX") CreateUserDTO user,
+                                      @ApiParam(value = "device" ,hidden = true) Device device) {
         if (StringUtils.isEmpty(user.getPassword()) || user.getPassword() == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Password is required.");
         }
 
-        if (StringUtils.isEmpty(user.getMail()) || user.getMail() == null) {
+        if (StringUtils.isEmpty(user.getEmail()) || user.getEmail() == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Mail is required.");
         }
 
-        User userDetails = userService.findUserByEmailAddress(user.getMail());
+        User userDetails = userService.findUserByEmailAddress(user.getEmail());
 
         if (userDetails != null) {
-            if (user.getSocialMediaUserId() != null) {
-                return createAuthenticationToken(user, device);
+            if (userDetails.getSocialMediaUserId() != null) {
+                return authenticate(user, device);
             } else {
                 return ResponseEntity.status(HttpStatus.CONFLICT).body("The email is already used for other account.");
             }
@@ -90,6 +95,7 @@ public class AuthenticationResource {
         return ResponseEntity.ok(new JWTTokenHolder(token));
     }
 
+    @ApiOperation(hidden = true, value = "Refresh")
     @RequestMapping(value = "${jwt.route.authentication.refresh}", method = RequestMethod.GET)
     public ResponseEntity<?> refreshAndGetAuthenticationToken(HttpServletRequest request) {
         String token = request.getHeader(authenticationHeader);

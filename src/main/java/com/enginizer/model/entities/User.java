@@ -1,6 +1,7 @@
 package com.enginizer.model.entities;
 
 import com.enginizer.model.Role;
+import io.swagger.annotations.ApiModelProperty;
 import org.hibernate.validator.constraints.Email;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
@@ -18,6 +19,7 @@ public class User{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
+    @ApiModelProperty(name = "Identifier of the user")
     private int id;
 
     @Column(name = "mail", nullable = false)

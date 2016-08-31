@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>1.3.3.RELEASE</version>
+		<version>1.4.0.RELEASE</version>
 	</parent>
 	<artifactId>this-counts</artifactId>
 	<name>enginizer-rest</name>
@@ -16,6 +16,7 @@
 		<java.version>1.8</java.version>
 		<maven.war.plugin>2.4</maven.war.plugin>
 		<maven.exec.plugin>1.3.2</maven.exec.plugin>
+		<swagger.version>2.2.2</swagger.version>
 		<!-- Artifacts -->
 	</properties>
 
@@ -81,6 +82,16 @@
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-aws-jdbc</artifactId>
 			<version>1.1.0.RELEASE</version>
+		</dependency>
+		<dependency>
+			<groupId>io.springfox</groupId>
+			<artifactId>springfox-swagger-ui</artifactId>
+			<version>${swagger.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.springfox</groupId>
+			<artifactId>springfox-swagger2</artifactId>
+			<version>${swagger.version}</version>
 		</dependency>
 	</dependencies>
 

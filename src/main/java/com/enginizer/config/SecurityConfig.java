@@ -50,19 +50,24 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
                 .authorizeRequests()
                 //.antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-
+                .anyRequest().permitAll();
                 // allow anonymous resource requests
-                .antMatchers(
-                        HttpMethod.GET,
-                        "/",
-                        "/*.html",
-                        "/favicon.ico",
-                        "/**/*.html",
-                        "/**/*.css",
-                        "/**/*.js"
-                ).permitAll()
-                .antMatchers("/resources/**").permitAll()
-                .anyRequest().authenticated();
+//                .antMatchers(
+//                        HttpMethod.GET,
+//                        "/",
+//                        "/webjars/**",
+//                        "/swagger-resources",
+//                        "/v2/**",
+//                        "/images/**",
+//                        "/configuration/**",
+//                        "/*.html",
+//                        "/favicon.ico",
+//                        "/**/*.html",
+//                        "/**/*.css",
+//                        "/**/*.js"
+//                ).permitAll()
+//                .antMatchers("/api/**").permitAll()
+//                .anyRequest().authenticated();
 
         // Custom JWT based security filter
         httpSecurity.addFilterBefore(authenticationTokenFilterBean(), UsernamePasswordAuthenticationFilter.class);
@@ -87,11 +92,5 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         JWTAuthenticationTokenFilter authenticationTokenFilter = new JWTAuthenticationTokenFilter();
         authenticationTokenFilter.setAuthenticationManager(authenticationManagerBean());
         return authenticationTokenFilter;
-    }
-
-
-    public static UserDetails getCurrentUser(){
-        return SecurityContextHolder.getContext().getAuthentication().getPrincipal() instanceof JWTUser ?
-                (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal() : null;
     }
 }

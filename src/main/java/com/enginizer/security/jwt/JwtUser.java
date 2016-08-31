@@ -8,9 +8,10 @@ import java.util.Collection;
 import java.util.Date;
 
 /**
- * Created by sorinavasiliu on 7/3/16.
+ * Holds the information that describes a user in this specific domain.
+ * Object is used for JWT serializing.
  */
-public class JwtUser implements UserDetails {
+public class JWTUser implements UserDetails {
 
     private final Long id;
     private final String username;
@@ -21,14 +22,13 @@ public class JwtUser implements UserDetails {
     private final Date lastPasswordResetDate;
 
 
-    public JwtUser(
+    public JWTUser(
             Long id,
             String username,
             String email,
             String password, Collection<? extends GrantedAuthority> authorities,
             boolean enabled,
-            Date lastPasswordResetDate
-    ) {
+            Date lastPasswordResetDate) {
         this.id = id;
         this.username = username;
         this.email = email;
