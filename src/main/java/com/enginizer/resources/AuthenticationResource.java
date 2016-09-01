@@ -49,7 +49,7 @@ public class AuthenticationResource {
     @ApiOperation(value = "Authenticate", notes = "Provides authentication for a user to use the API.")
     @RequestMapping(value = "api/authentication", method = RequestMethod.POST, consumes = "application/json")
     public ResponseEntity<?> authenticate(@RequestBody @ApiParam(name = "auth", required = true, defaultValue = "XXX") AuthenticationDTO auth,
-                                          @ApiParam(value = "device" ,hidden = true) Device device)
+                                          Device device)
             throws AuthenticationException {
 
         // Perform the security
@@ -67,7 +67,7 @@ public class AuthenticationResource {
     @ApiOperation(value = "Register", notes = "Provides ability so that user can register.")
     @RequestMapping(value = "api/register", method = RequestMethod.POST)
     public ResponseEntity<?> register(@RequestBody @ApiParam(name = "user", required = true, defaultValue = "XXX") CreateUserDTO user,
-                                      @ApiParam(value = "device" ,hidden = true) Device device) {
+                                      Device device) {
         if (StringUtils.isEmpty(user.getPassword()) || user.getPassword() == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Password is required.");
         }

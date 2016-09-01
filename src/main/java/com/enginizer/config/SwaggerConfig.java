@@ -3,6 +3,7 @@ package com.enginizer.config;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.mobile.device.Device;
 import springfox.documentation.builders.ApiInfoBuilder;
 import springfox.documentation.builders.RequestHandlerSelectors;
 import springfox.documentation.service.ApiInfo;
@@ -23,7 +24,9 @@ public class SwaggerConfig {
 
     @Bean
     public Docket newsApi() {
-        return new Docket(DocumentationType.SWAGGER_2).select()
+        return new Docket(DocumentationType.SWAGGER_2)
+                .ignoredParameterTypes(Device.class)
+                .select()
                 .apis(RequestHandlerSelectors.basePackage("com.enginizer.resources")).build().enable(isSwaggerEnabled)
                 .apiInfo(apiInfo());
     }
@@ -33,6 +36,7 @@ public class SwaggerConfig {
                 .title("Enginizer REST")
                 .description("Spring REST template project")
                 .version("1.0")
+
                 .build();
     }
 
