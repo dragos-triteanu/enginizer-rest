@@ -1,6 +1,5 @@
 package com.enginizer.security.jwt;
 
-import com.enginizer.model.entities.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -18,14 +17,13 @@ import java.util.Map;
  * Created by sorinavasiliu on 7/3/16.
  */
 @Component
-public class JWTUtil implements Serializable {
+public class JwtUtil implements Serializable {
 
     private static final long serialVersionUID = -3301605591108950415L;
 
     private static final String CLAIM_KEY_USERNAME = "sub";
     private static final String CLAIM_KEY_AUDIENCE = "audience";
     private static final String CLAIM_KEY_CREATED = "created";
-    private static final String CLAIM_KEY_ROLE = "role";
 
     private static final String AUDIENCE_UNKNOWN = "unknown";
     private static final String AUDIENCE_WEB = "web";
@@ -50,16 +48,6 @@ public class JWTUtil implements Serializable {
             return username;
     }
 
-    public Date getCreatedDateFromToken(String token) {
-        Date created;
-        try {
-            final Claims claims = getClaimsFromToken(token);
-            created = new Date((Long) claims.get(CLAIM_KEY_CREATED));
-        } catch (Exception e) {
-            created = null;
-        }
-        return created;
-    }
 
     public Date getExpirationDateFromToken(String token) {
         Date expiration;
@@ -84,16 +72,13 @@ public class JWTUtil implements Serializable {
     }
 
     private Date generateExpirationDate() {
+
         return new Date(System.currentTimeMillis() + expiration * 1000);
     }
 
     private Boolean isTokenExpired(String token) {
         final Date expiration = getExpirationDateFromToken(token);
         return expiration.before(new Date());
-    }
-
-    private Boolean isCreatedBeforeLastPasswordReset(Date created, Date lastPasswordReset) {
-        return (lastPasswordReset != null && created.before(lastPasswordReset));
     }
 
     private Claims getClaimsFromToken(String token) {
@@ -127,11 +112,10 @@ public class JWTUtil implements Serializable {
         return (AUDIENCE_TABLET.equals(audience) || AUDIENCE_MOBILE.equals(audience));
     }
 
-    public String generateToken(User userDetails, Device device) {
+    public String generateToken(UserDetails userDetails, Device device) {
         Map<String, Object> claims = new HashMap<>();
-        claims.put(CLAIM_KEY_USERNAME, userDetails.getMail());
+        claims.put(CLAIM_KEY_USERNAME, userDetails.getUsername());
         claims.put(CLAIM_KEY_AUDIENCE, generateAudience(device));
-        claims.put(CLAIM_KEY_ROLE, userDetails.getRole());
         claims.put(CLAIM_KEY_CREATED, new Date());
         return generateToken(claims);
     }
@@ -140,14 +124,12 @@ public class JWTUtil implements Serializable {
         return Jwts.builder()
                 .setClaims(claims)
                 .setExpiration(generateExpirationDate())
-                .signWith(SignatureAlgorithm.HS512, secret)
+                .signWith(SignatureAlgorithm.HS256, secret)
                 .compact();
     }
 
-    public Boolean canTokenBeRefreshed(String token, Date lastPasswordReset) {
-        final Date created = getCreatedDateFromToken(token);
-        return !isCreatedBeforeLastPasswordReset(created, lastPasswordReset)
-                && (!isTokenExpired(token) || ignoreTokenExpiration(token));
+    public Boolean canTokenBeRefreshed(String token) {
+        return !isTokenExpired(token) || ignoreTokenExpiration(token);
     }
 
     public String refreshToken(String token) {
@@ -166,10 +148,9 @@ public class JWTUtil implements Serializable {
         if(userDetails == null)
             return false;
 
-        JWTUser user = (JWTUser) userDetails;
         final String username = getMailFromToken(token);
         return (
-                username.equals(user.getUsername())
+                username.equals(userDetails.getUsername())
                         && (!isTokenExpired(token) || ignoreTokenExpiration(token)));
     }
 }

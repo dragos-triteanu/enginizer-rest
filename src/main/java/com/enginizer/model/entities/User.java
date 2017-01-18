@@ -32,23 +32,20 @@ public class User{
     @Enumerated(EnumType.STRING)
     private Role role;
 
-    @Column(name = "lastLogin")
-    private Timestamp lastLogin;
-
-    @Column(name = "createdOn")
-    private Timestamp createdOn;
-
     @Column(name = "firstName")
     private String firstName;
 
     @Column(name = "lastName")
     private String lastName;
 
-    @Column(name = "socialMediaUserId")
-    private String socialMediaUserId;
+    @Column(name = "lastLogin")
+    private Timestamp lastLogin;
 
-    @Column(name = "notificationsEnable")
-    private boolean notificationsEnable = false;
+    @Column(name = "createdOn")
+    private Timestamp createdOn;
+
+    @Column(name = "enabled", nullable = false)
+    private boolean enabled;
 
     @PrePersist
     public void encryptPassword(){
@@ -119,21 +116,11 @@ public class User{
         this.lastName = lastName;
     }
 
-    public String getSocialMediaUserId() {
-        return socialMediaUserId;
+    public boolean isEnabled() {
+        return enabled;
     }
 
-    public void setSocialMediaUserId(String socialMediaUserId) {
-        this.socialMediaUserId = socialMediaUserId;
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
     }
-
-    public boolean isNotificationsEnable() {
-        return notificationsEnable;
-    }
-
-    public void setNotificationsEnable(boolean notificationsEnable) {
-        this.notificationsEnable = notificationsEnable;
-    }
-
-
 }

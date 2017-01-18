@@ -18,8 +18,7 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     User findByMail(String mail);
 
     @Modifying
-    @Query("Update User u SET  u.firstName = :firstName , u.lastName = :lastName ," +
-            " u.notificationsEnable = :notificationsEnable WHERE u.id= :userId")
+    @Query("Update User u SET  u.firstName = :firstName , u.lastName = :lastName WHERE u.id= :userId")
     void updateUserInfo(@Param("userId") int userId, @Param("firstName") String firstName,
-                        @Param("lastName") String lastName, @Param("notificationsEnable") boolean notificationsEnable);
+                        @Param("lastName") String lastName);
 }

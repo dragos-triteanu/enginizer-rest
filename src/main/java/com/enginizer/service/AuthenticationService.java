@@ -1,12 +1,17 @@
 package com.enginizer.service;
 
+import com.enginizer.model.Role;
 import com.enginizer.model.entities.User;
-import com.enginizer.security.jwt.JWTUserFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Service class for handling authentication.
@@ -24,8 +29,19 @@ public class AuthenticationService implements UserDetailsService {
         if (user == null) {
             throw new UsernameNotFoundException(String.format("No user found with username '%s'.", username));
         } else {
-            return JWTUserFactory.create(user);
+            return this.getUserDetails(user);
         }
+    }
+
+    private List<GrantedAuthority> mapToGrantedAuthorities(Role role) {
+        List<GrantedAuthority> grantedAuths = new ArrayList<>();
+        grantedAuths.add(new SimpleGrantedAuthority("ROLE_" + role));
+        return grantedAuths;
+    }
+
+    private org.springframework.security.core.userdetails.User getUserDetails(User user){
+        return new org.springframework.security.core.userdetails.User
+                (user.getMail(),user.getPassword(),this.mapToGrantedAuthorities(user.getRole()));
     }
 
 }

@@ -9,7 +9,6 @@ public class UserDTO {
     private String userName;
     private String firstName;
     private String lastName;
-    private boolean notificationsEnable;
 
     public int getUserId() {
         return userId;
@@ -41,13 +40,5 @@ public class UserDTO {
 
     public void setLastName(String lastName) {
         this.lastName = lastName;
-    }
-
-    public boolean isNotificationsEnable() {
-        return notificationsEnable;
-    }
-
-    public void setNotificationsEnable(boolean notificationsEnable) {
-        this.notificationsEnable = notificationsEnable;
     }
 }

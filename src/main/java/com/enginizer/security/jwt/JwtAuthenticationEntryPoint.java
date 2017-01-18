@@ -13,7 +13,7 @@ import java.io.Serializable;
  * Defines a default handler for managing the JWT authorization.Practically sends the 401 status code in case of authentication error.
  */
 @Component
-public class JWTAuthenticationEntryPoint implements AuthenticationEntryPoint, Serializable {
+public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint, Serializable {
 
     @Override
     public void commence(HttpServletRequest request,

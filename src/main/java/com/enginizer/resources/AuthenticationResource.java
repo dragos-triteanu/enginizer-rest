@@ -3,10 +3,8 @@ package com.enginizer.resources;
 import com.enginizer.model.dto.AuthenticationDTO;
 import com.enginizer.model.dto.CreateUserDTO;
 import com.enginizer.model.entities.User;
-import com.enginizer.security.jwt.JWTTokenHolder;
-import com.enginizer.security.jwt.JWTUtil;
-import com.enginizer.security.jwt.JWTUser;
-import com.enginizer.service.AuthenticationService;
+import com.enginizer.security.jwt.JwtTokenHolder;
+import com.enginizer.security.jwt.JwtUtil;
 import com.enginizer.service.UserService;
 import io.swagger.annotations.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +17,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
@@ -38,18 +38,17 @@ public class AuthenticationResource {
     private AuthenticationManager authenticationManager;
 
     @Autowired
-    private JWTUtil JWTUtil;
+    private JwtUtil JwtUtil;
 
     @Autowired
-    private AuthenticationService userDetailsService;
+    private UserDetailsService userServiceDetails;
 
     @Autowired
     private UserService userService;
 
     @ApiOperation(value = "Authenticate", notes = "Provides authentication for a user to use the API.")
-    @RequestMapping(value = "api/authentication", method = RequestMethod.POST, consumes = "application/json")
-    public ResponseEntity<?> authenticate(@RequestBody @ApiParam(name = "auth", required = true, defaultValue = "XXX") AuthenticationDTO auth,
-                                          Device device)
+    @RequestMapping(value = "${route.authentication.login}", method = RequestMethod.POST, consumes = "application/json")
+    public ResponseEntity<?> authenticate(@RequestBody @ApiParam(name = "auth", required = true) AuthenticationDTO auth, Device device)
             throws AuthenticationException {
 
         // Perform the security
@@ -57,16 +56,16 @@ public class AuthenticationResource {
                 new UsernamePasswordAuthenticationToken(auth.getEmail(), auth.getPassword()));
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
+        UserDetails userDetails = userServiceDetails.loadUserByUsername(auth.getEmail());
 
-        User userDetails = userService.findUserByEmailAddress(auth.getEmail());
-        final String token = JWTUtil.generateToken(userDetails, device);
+        final String token = JwtUtil.generateToken(userDetails, device);
 
-        return ResponseEntity.ok(new JWTTokenHolder(token));
+        return ResponseEntity.ok(new JwtTokenHolder(token));
     }
 
     @ApiOperation(value = "Register", notes = "Provides ability so that user can register.")
     @RequestMapping(value = "api/register", method = RequestMethod.POST)
-    public ResponseEntity<?> register(@RequestBody @ApiParam(name = "user", required = true, defaultValue = "XXX") CreateUserDTO user,
+    public ResponseEntity<?> register(@RequestBody @ApiParam(name = "user", required = true) CreateUserDTO user,
                                       Device device) {
         if (StringUtils.isEmpty(user.getPassword()) || user.getPassword() == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Password is required.");
@@ -79,32 +78,26 @@ public class AuthenticationResource {
         User userDetails = userService.findUserByEmailAddress(user.getEmail());
 
         if (userDetails != null) {
-            if (userDetails.getSocialMediaUserId() != null) {
-                return authenticate(user, device);
-            } else {
-                return ResponseEntity.status(HttpStatus.CONFLICT).body("The email is already used for other account.");
-            }
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("The email is already used for other account.");
         }
 
-        userDetails = userService.createAccount(user);
-        if (userDetails == null) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("The account couldn't be created.");
-        }
+        userService.createAccount(user);
 
-        final String token = JWTUtil.generateToken(userDetails, device);
-        return ResponseEntity.ok(new JWTTokenHolder(token));
+        AuthenticationDTO auth = new AuthenticationDTO();
+        auth.setEmail(user.getEmail());
+        auth.setPassword(user.getPassword());
+
+       return this.authenticate(auth,device);
     }
 
     @ApiOperation(hidden = true, value = "Refresh")
     @RequestMapping(value = "${jwt.route.authentication.refresh}", method = RequestMethod.GET)
     public ResponseEntity<?> refreshAndGetAuthenticationToken(HttpServletRequest request) {
         String token = request.getHeader(authenticationHeader);
-        String username = JWTUtil.getMailFromToken(token);
-        JWTUser user = (JWTUser) userDetailsService.loadUserByUsername(username);
 
-        if (JWTUtil.canTokenBeRefreshed(token, user.getLastPasswordResetDate())) {
-            String refreshedToken = JWTUtil.refreshToken(token);
-            return ResponseEntity.ok(new JWTTokenHolder(refreshedToken));
+        if (JwtUtil.canTokenBeRefreshed(token)) {
+            String refreshedToken = JwtUtil.refreshToken(token);
+            return ResponseEntity.ok(new JwtTokenHolder(refreshedToken));
         } else {
             return ResponseEntity.badRequest().body(null);
         }

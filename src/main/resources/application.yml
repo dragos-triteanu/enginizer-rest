@@ -10,13 +10,11 @@ spring:
 
 jwt:
   header: Authorization
-  secret: mySecret
-  expiration: 604800
+  secret: 91ON2xG3vv4whmCja9ThDw9Pn2Xz8mmd1f7h95MEkaU=
+  expiration: 3600
 route:
+  authentication:
+      register: api/register
+      login: api/login
   user:
       details: api/user/details
-      interests: api/user/interests
-      update:
-              info: api/user/update/info
-              interests: api/user/update/interests
-              password: api/user/update/password

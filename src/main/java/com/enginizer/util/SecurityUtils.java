@@ -1,7 +1,7 @@
 package com.enginizer.util;
 
-import com.enginizer.security.jwt.JWTUser;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 
 /**
@@ -10,7 +10,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 public class SecurityUtils {
 
     public static UserDetails getCurrentUser(){
-        return SecurityContextHolder.getContext().getAuthentication().getPrincipal() instanceof JWTUser ?
+        return SecurityContextHolder.getContext().getAuthentication().getPrincipal() instanceof User ?
                 (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal() : null;
     }
 }
