@@ -1,5 +1,6 @@
 package com.enginizer.security.jwt;
 
+import com.enginizer.enums.TokenType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -37,14 +38,16 @@ public class JwtAuthenticationTokenFilter extends UsernamePasswordAuthentication
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         String authToken = httpRequest.getHeader(tokenHeader);
+        JwtTokenHolder tokenHolder = new JwtTokenHolder(authToken, TokenType.AUTH);
+
         // authToken.startsWith("Bearer ")
         // String authToken = header.substring(7);
-        String username = JwtUtil.getMailFromToken(authToken);
+        String username = JwtUtil.getMailFromToken(tokenHolder);
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             try {
                 UserDetails userDetails = this.userDetails.loadUserByUsername(username);
-                if (JwtUtil.validateToken(authToken, userDetails)) {
+                if (JwtUtil.validateToken(tokenHolder, userDetails.getUsername())) {
                     UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                     authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(httpRequest));
                     SecurityContextHolder.getContext().setAuthentication(authentication);

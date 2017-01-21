@@ -1,5 +1,7 @@
 package com.enginizer.security.jwt;
 
+import com.enginizer.enums.TokenType;
+import com.enginizer.model.entities.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -36,7 +38,13 @@ public class JwtUtil implements Serializable {
     @Value("${jwt.expiration}")
     private Long expiration;
 
-    public String getMailFromToken(String token) {
+    @Value("${jwt.forgotPasswordSecret}")
+    private String forgotPasswordSecret;
+
+    @Value("${jwt.forgotPasswordExpiration}")
+    private Long forgotPasswordExpiration;
+
+    public String getMailFromToken(JwtTokenHolder token) {
         String username;
         try {
             final Claims claims = getClaimsFromToken(token);
@@ -49,7 +57,7 @@ public class JwtUtil implements Serializable {
     }
 
 
-    public Date getExpirationDateFromToken(String token) {
+    public Date getExpirationDateFromToken(JwtTokenHolder token) {
         Date expiration;
         try {
             final Claims claims = getClaimsFromToken(token);
@@ -60,7 +68,7 @@ public class JwtUtil implements Serializable {
         return expiration;
     }
 
-    public String getAudienceFromToken(String token) {
+    public String getAudienceFromToken(JwtTokenHolder token) {
         String audience;
         try {
             final Claims claims = getClaimsFromToken(token);
@@ -71,27 +79,93 @@ public class JwtUtil implements Serializable {
         return audience;
     }
 
-    private Date generateExpirationDate() {
-
-        return new Date(System.currentTimeMillis() + expiration * 1000);
+    public Boolean canTokenBeRefreshed(JwtTokenHolder token) {
+        return !isTokenExpired(token) || ignoreTokenExpiration(token);
     }
 
-    private Boolean isTokenExpired(String token) {
+    public String refreshToken(JwtTokenHolder token) {
+        String refreshedToken;
+        try {
+            final Claims claims = getClaimsFromToken(token);
+            claims.put(CLAIM_KEY_CREATED, new Date());
+            refreshedToken = generateToken(claims);
+        } catch (Exception e) {
+            refreshedToken = null;
+        }
+        return refreshedToken;
+    }
+
+    public Boolean validateToken(JwtTokenHolder token, String userName) {
+
+        final String username = getMailFromToken(token);
+
+        if(token.getTokenType()==TokenType.AUTH) {
+            return (username.equals(userName)
+                    && (!isTokenExpired(token) || ignoreTokenExpiration(token)));
+        }
+
+        return !isTokenExpired(token);
+    }
+
+
+    private String generateToken(Map<String, Object> claims) {
+        return Jwts.builder()
+                .setClaims(claims)
+                .setExpiration(new Date(System.currentTimeMillis() + expiration * 1000))
+                .signWith(SignatureAlgorithm.HS256, secret)
+                .compact();
+    }
+
+    public String generateToken(UserDetails userDetails, Device device) {
+        Map<String, Object> claims = generateClaims(userDetails.getUsername(),device);
+        return generateToken(claims);
+    }
+
+    public String generateForgotPasswordToken(User user, Device device) {
+        return Jwts.builder()
+                .setClaims(generateClaims(user.getMail(),device))
+                .setExpiration(new Date(System.currentTimeMillis() + forgotPasswordExpiration * 1000))
+                .signWith(SignatureAlgorithm.HS256, forgotPasswordSecret)
+                .compact();
+    }
+
+    private Map<String, Object> generateClaims(String email , Device device)
+    {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put(CLAIM_KEY_USERNAME, email);
+        claims.put(CLAIM_KEY_AUDIENCE, generateAudience(device));
+        claims.put(CLAIM_KEY_CREATED, new Date());
+
+        return claims;
+    }
+
+    private Boolean isTokenExpired(JwtTokenHolder token) {
         final Date expiration = getExpirationDateFromToken(token);
         return expiration.before(new Date());
     }
 
-    private Claims getClaimsFromToken(String token) {
+    private Claims getClaimsFromToken(JwtTokenHolder token) {
         Claims claims;
+        String secretKey = "";
         try {
+
+            switch (token.getTokenType()) {
+                case AUTH:
+                    secretKey = secret;
+                    break;
+                case PASSWORD:
+                    secretKey = forgotPasswordSecret;
+                    break;
+            }
+
             claims = Jwts.parser()
-                    .setSigningKey(secret)
-                    .parseClaimsJws(token)
+                    .setSigningKey(secretKey)
+                    .parseClaimsJws(token.getToken())
                     .getBody();
-            }
+        }
         catch (Exception e) {
-                claims = null;
-            }
+            claims = null;
+        }
         return claims;
     }
 
@@ -107,52 +181,11 @@ public class JwtUtil implements Serializable {
         return audience;
     }
 
-    private Boolean ignoreTokenExpiration(String token) {
+    private Boolean ignoreTokenExpiration(JwtTokenHolder token) {
         String audience = getAudienceFromToken(token);
         return (AUDIENCE_TABLET.equals(audience) || AUDIENCE_MOBILE.equals(audience));
     }
 
-    public String generateToken(UserDetails userDetails, Device device) {
-        Map<String, Object> claims = new HashMap<>();
-        claims.put(CLAIM_KEY_USERNAME, userDetails.getUsername());
-        claims.put(CLAIM_KEY_AUDIENCE, generateAudience(device));
-        claims.put(CLAIM_KEY_CREATED, new Date());
-        return generateToken(claims);
-    }
-
-    private String generateToken(Map<String, Object> claims) {
-        return Jwts.builder()
-                .setClaims(claims)
-                .setExpiration(generateExpirationDate())
-                .signWith(SignatureAlgorithm.HS256, secret)
-                .compact();
-    }
-
-    public Boolean canTokenBeRefreshed(String token) {
-        return !isTokenExpired(token) || ignoreTokenExpiration(token);
-    }
-
-    public String refreshToken(String token) {
-        String refreshedToken;
-        try {
-            final Claims claims = getClaimsFromToken(token);
-            claims.put(CLAIM_KEY_CREATED, new Date());
-            refreshedToken = generateToken(claims);
-        } catch (Exception e) {
-            refreshedToken = null;
-        }
-        return refreshedToken;
-    }
-
-    public Boolean validateToken(String token, UserDetails userDetails) {
-        if(userDetails == null)
-            return false;
-
-        final String username = getMailFromToken(token);
-        return (
-                username.equals(userDetails.getUsername())
-                        && (!isTokenExpired(token) || ignoreTokenExpiration(token)));
-    }
 }
 
 

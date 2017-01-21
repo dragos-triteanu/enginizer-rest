@@ -43,9 +43,10 @@ public class UserService {
         userRepository.save(fromCreateUSerDTO(user));
     }
 
-    public void updateUserInfo(User user){
-        userRepository.updateUserInfo(user.getId(),user.getFirstName(),user.getLastName());
+    public void updateUserPassword(User user){
+        userRepository.updateUserPassword(user.getId(),user.getPassword());
     }
+
 
     private User fromCreateUSerDTO(CreateUserDTO dto){
         User user = new User();

@@ -1,10 +1,13 @@
 package com.enginizer.resources;
 
+import com.enginizer.enums.TokenType;
 import com.enginizer.model.dto.AuthenticationDTO;
+import com.enginizer.model.dto.ChangePasswordDTO;
 import com.enginizer.model.dto.CreateUserDTO;
 import com.enginizer.model.entities.User;
 import com.enginizer.security.jwt.JwtTokenHolder;
 import com.enginizer.security.jwt.JwtUtil;
+import com.enginizer.service.EmailService;
 import com.enginizer.service.UserService;
 import io.swagger.annotations.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +25,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletRequest;
+import javax.mail.MessagingException;
 
 /**
  * REST resource that exposes an api for authenticating via the server.
@@ -46,6 +49,9 @@ public class AuthenticationResource {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private EmailService emailService;
+
     @ApiOperation(value = "Authenticate", notes = "Provides authentication for a user to use the API.")
     @RequestMapping(value = "${route.authentication.login}", method = RequestMethod.POST, consumes = "application/json")
     public ResponseEntity<?> authenticate(@RequestBody @ApiParam(name = "auth", required = true) AuthenticationDTO auth, Device device)
@@ -64,7 +70,7 @@ public class AuthenticationResource {
     }
 
     @ApiOperation(value = "Register", notes = "Provides ability so that user can register.")
-    @RequestMapping(value = "api/register", method = RequestMethod.POST)
+    @RequestMapping(value = "${route.authentication.register}", method = RequestMethod.POST)
     public ResponseEntity<?> register(@RequestBody @ApiParam(name = "user", required = true) CreateUserDTO user,
                                       Device device) {
         if (StringUtils.isEmpty(user.getPassword()) || user.getPassword() == null) {
@@ -87,19 +93,62 @@ public class AuthenticationResource {
         auth.setEmail(user.getEmail());
         auth.setPassword(user.getPassword());
 
-       return this.authenticate(auth,device);
+        return this.authenticate(auth, device);
     }
 
-    @ApiOperation(hidden = true, value = "Refresh")
-    @RequestMapping(value = "${jwt.route.authentication.refresh}", method = RequestMethod.GET)
-    public ResponseEntity<?> refreshAndGetAuthenticationToken(HttpServletRequest request) {
-        String token = request.getHeader(authenticationHeader);
+    @RequestMapping(value = "${route.authentication.password.forgot}", method = RequestMethod.POST)
+    public ResponseEntity<?> forgotPassword(@RequestBody @ApiParam(name = "auth", required = true) AuthenticationDTO auth, Device device) {
 
-        if (JwtUtil.canTokenBeRefreshed(token)) {
-            String refreshedToken = JwtUtil.refreshToken(token);
-            return ResponseEntity.ok(new JwtTokenHolder(refreshedToken));
-        } else {
-            return ResponseEntity.badRequest().body(null);
+        User userDetails = userService.findUserByEmailAddress(auth.getEmail());
+        if (userDetails == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("UNAUTHORIZED");
         }
+
+        String token = JwtUtil.generateForgotPasswordToken(userDetails, device);
+        try {
+            emailService.prepareAndSend(userDetails, token);
+        } catch (MessagingException ex) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error sending mail.");
+        }
+
+        return new ResponseEntity<>(HttpStatus.OK);
     }
+
+
+    @RequestMapping(value = "api/password/reset", method = RequestMethod.GET)
+    public ResponseEntity<?> resetPassword(@RequestParam("token") @ApiParam(name = "token") String token)
+    {
+        JwtTokenHolder jwtToken = new JwtTokenHolder(token, TokenType.PASSWORD);
+
+        if(!JwtUtil.validateToken(jwtToken,null)){
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthorized or token expired.");
+        }
+
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @RequestMapping(value = "api/password/reset", method = RequestMethod.POST)
+    public ResponseEntity<?> resetPassword(@RequestBody @ApiParam(name="changePassword") ChangePasswordDTO changePassword, Device device)
+    {
+        User userDetails = userService.findUserByEmailAddress(changePassword.getEmail());
+
+        if (userDetails == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Email is not valid.");
+        }
+
+        if(!changePassword.getPassword().equals(changePassword.getPassword())){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Password are not equals.");
+        }
+
+        userDetails.setPassword(changePassword.getPassword());
+        userDetails.encryptPassword();
+        userService.updateUserPassword(userDetails);
+
+        AuthenticationDTO auth = new AuthenticationDTO();
+        auth.setEmail(changePassword.getEmail());
+        auth.setPassword(changePassword.getPassword());
+
+        return this.authenticate(auth, device);
+    }
+
 }

@@ -11,10 +11,18 @@ spring:
 jwt:
   header: Authorization
   secret: 91ON2xG3vv4whmCja9ThDw9Pn2Xz8mmd1f7h95MEkaU=
+  forgotPasswordSecret: jjXpDQCTz3bhS9Sf13S6I+HC7Jev+EbLjTTVl6I8RfI=
   expiration: 3600
+  forgotPasswordExpiration: 1440
 route:
   authentication:
       register: api/register
       login: api/login
+      password:
+          forgot: api/password/forgot
+          reset: api/password/reset
   user:
-      details: api/user/details
+      all: api/user
+
+mail:
+    subject: Resetare parola
