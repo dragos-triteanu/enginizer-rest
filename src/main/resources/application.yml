@@ -11,7 +11,7 @@ spring:
 jwt:
   header: Authorization
   secret: 91ON2xG3vv4whmCja9ThDw9Pn2Xz8mmd1f7h95MEkaU=
-  expiration: 3600
+  expiration: 100000
 route:
   authentication:
       register: api/register
