@@ -17,6 +17,7 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpServletResponseWrapper;
 import java.io.IOException;
 
 /**
@@ -29,7 +30,7 @@ public class JwtAuthenticationTokenFilter extends UsernamePasswordAuthentication
     private UserDetailsService userDetails;
 
     @Autowired
-    private JwtUtil JwtUtil;
+    private JwtUtil jwtUtil;
 
     @Value("${jwt.header}")
     private String tokenHeader;
@@ -37,28 +38,34 @@ public class JwtAuthenticationTokenFilter extends UsernamePasswordAuthentication
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
         HttpServletRequest httpRequest = (HttpServletRequest) request;
+        HttpServletResponse httpResponse = (HttpServletResponse) response;
+        HttpServletResponseWrapper httpResponseWrapper = new HttpServletResponseWrapper(httpResponse);
+
         String authToken = httpRequest.getHeader(tokenHeader);
         JwtTokenHolder tokenHolder = new JwtTokenHolder(authToken, TokenType.AUTH);
 
         // authToken.startsWith("Bearer ")
         // String authToken = header.substring(7);
-        String username = JwtUtil.getMailFromToken(tokenHolder);
-
+        String username = jwtUtil.getMailFromToken(tokenHolder);
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             try {
                 UserDetails userDetails = this.userDetails.loadUserByUsername(username);
-                if (JwtUtil.validateToken(tokenHolder, userDetails.getUsername())) {
+                if (jwtUtil.validateToken(tokenHolder, userDetails.getUsername())) {
                     UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                     authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(httpRequest));
                     SecurityContextHolder.getContext().setAuthentication(authentication);
                 }
             }catch (UsernameNotFoundException ex){
-                HttpServletResponse httpResponse = (HttpServletResponse) response;
                 httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED,ex.getMessage());
                 return;
             }
         }
 
-        chain.doFilter(request, response);
+        if (authToken != null && jwtUtil.canTokenBeRefreshed(tokenHolder)) {
+            String refreshedToken = jwtUtil.refreshToken(tokenHolder);
+            httpResponseWrapper.setHeader("Authorization", refreshedToken);
+        }
+
+        chain.doFilter(request, httpResponse);
     }
 }

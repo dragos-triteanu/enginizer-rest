@@ -36,7 +36,6 @@ public class SwaggerConfig {
                 .title("Enginizer REST")
                 .description("Spring REST template project")
                 .version("1.0")
-
                 .build();
     }
 
