@@ -1,4 +1,4 @@
-package com.enginizer.resources;
+package com.enginizer.resources.api;
 
 import com.enginizer.model.dto.UserDTO;
 import com.enginizer.service.UserService;
@@ -23,7 +23,7 @@ public class UserResource {
     @Autowired
     private UserService userService;
 
-    @RequestMapping(value = "${route.user.all}", method = RequestMethod.GET)
+    @RequestMapping(value = "/api/user", method = RequestMethod.GET)
     public ResponseEntity<?> getUserDetails() {
         List<UserDTO> users = userService.getUsers();
 

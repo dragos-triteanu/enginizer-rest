@@ -1,12 +1,12 @@
-package com.enginizer.resources;
+package com.enginizer.resources.auth;
 
 import com.enginizer.enums.TokenType;
 import com.enginizer.model.dto.AuthenticationDTO;
 import com.enginizer.model.dto.ChangePasswordDTO;
 import com.enginizer.model.dto.CreateUserDTO;
 import com.enginizer.model.entities.User;
-import com.enginizer.security.jwt.JwtTokenHolder;
-import com.enginizer.security.jwt.JwtUtil;
+import com.enginizer.security.jwt.JWTTokenHolder;
+import com.enginizer.security.jwt.JWTUtil;
 import com.enginizer.service.EmailService;
 import com.enginizer.service.UserService;
 import io.swagger.annotations.*;
@@ -41,7 +41,7 @@ public class AuthenticationResource {
     private AuthenticationManager authenticationManager;
 
     @Autowired
-    private JwtUtil JwtUtil;
+    private JWTUtil jwtUtil;
 
     @Autowired
     private UserDetailsService userServiceDetails;
@@ -64,13 +64,13 @@ public class AuthenticationResource {
         SecurityContextHolder.getContext().setAuthentication(authentication);
         UserDetails userDetails = userServiceDetails.loadUserByUsername(auth.getEmail());
 
-        final String token = JwtUtil.generateToken(userDetails, device);
+        final String token = jwtUtil.generateToken(userDetails, device);
 
-        return ResponseEntity.ok(new JwtTokenHolder(token));
+        return ResponseEntity.ok(new JWTTokenHolder(token));
     }
 
     @ApiOperation(value = "Register", notes = "Provides ability so that user can register.")
-    @RequestMapping(value = "${route.authentication.register}", method = RequestMethod.POST)
+    @RequestMapping(value = "api/register", method = RequestMethod.POST)
     public ResponseEntity<?> register(@RequestBody @ApiParam(name = "user", required = true) CreateUserDTO user,
                                       Device device) {
         if (StringUtils.isEmpty(user.getPassword()) || user.getPassword() == null) {
@@ -104,7 +104,7 @@ public class AuthenticationResource {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("UNAUTHORIZED");
         }
 
-        String token = JwtUtil.generateForgotPasswordToken(userDetails, device);
+        String token = jwtUtil.generateForgotPasswordToken(userDetails, device);
         try {
             emailService.prepareAndSend(userDetails, token);
         } catch (MessagingException ex) {
@@ -118,9 +118,9 @@ public class AuthenticationResource {
     @RequestMapping(value = "api/password/reset", method = RequestMethod.GET)
     public ResponseEntity<?> resetPassword(@RequestParam("token") @ApiParam(name = "token") String token)
     {
-        JwtTokenHolder jwtToken = new JwtTokenHolder(token, TokenType.PASSWORD);
+        JWTTokenHolder jwtToken = new JWTTokenHolder(token, TokenType.PASSWORD);
 
-        if(!JwtUtil.validateToken(jwtToken,null)){
+        if(!jwtUtil.validateToken(jwtToken,null)){
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthorized or token expired.");
         }
 

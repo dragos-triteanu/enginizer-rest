@@ -19,7 +19,7 @@ import java.util.Map;
  * Created by sorinavasiliu on 7/3/16.
  */
 @Component
-public class JwtUtil implements Serializable {
+public class JWTUtil implements Serializable {
 
     private static final long serialVersionUID = -3301605591108950415L;
 
@@ -44,7 +44,7 @@ public class JwtUtil implements Serializable {
     @Value("${jwt.forgotPasswordExpiration}")
     private Long forgotPasswordExpiration;
 
-    public String getMailFromToken(JwtTokenHolder token) {
+    public String getMailFromToken(JWTTokenHolder token) {
         String username;
         try {
             final Claims claims = getClaimsFromToken(token);
@@ -57,7 +57,7 @@ public class JwtUtil implements Serializable {
     }
 
 
-    public Date getExpirationDateFromToken(JwtTokenHolder token) {
+    public Date getExpirationDateFromToken(JWTTokenHolder token) {
         Date expiration;
         try {
             final Claims claims = getClaimsFromToken(token);
@@ -68,7 +68,7 @@ public class JwtUtil implements Serializable {
         return expiration;
     }
 
-    public String getAudienceFromToken(JwtTokenHolder token) {
+    public String getAudienceFromToken(JWTTokenHolder token) {
         String audience;
         try {
             final Claims claims = getClaimsFromToken(token);
@@ -79,11 +79,11 @@ public class JwtUtil implements Serializable {
         return audience;
     }
 
-    public Boolean canTokenBeRefreshed(JwtTokenHolder token) {
+    public Boolean canTokenBeRefreshed(JWTTokenHolder token) {
         return !isTokenExpired(token) || ignoreTokenExpiration(token);
     }
 
-    public String refreshToken(JwtTokenHolder token) {
+    public String refreshToken(JWTTokenHolder token) {
         String refreshedToken;
         try {
             final Claims claims = getClaimsFromToken(token);
@@ -95,7 +95,7 @@ public class JwtUtil implements Serializable {
         return refreshedToken;
     }
 
-    public Boolean validateToken(JwtTokenHolder token, String userName) {
+    public Boolean validateToken(JWTTokenHolder token, String userName) {
 
         final String username = getMailFromToken(token);
 
@@ -139,12 +139,12 @@ public class JwtUtil implements Serializable {
         return claims;
     }
 
-    private Boolean isTokenExpired(JwtTokenHolder token) {
+    private Boolean isTokenExpired(JWTTokenHolder token) {
         final Date expiration = getExpirationDateFromToken(token);
         return expiration.before(new Date());
     }
 
-    private Claims getClaimsFromToken(JwtTokenHolder token) {
+    private Claims getClaimsFromToken(JWTTokenHolder token) {
         Claims claims;
         String secretKey = "";
         try {
@@ -181,7 +181,7 @@ public class JwtUtil implements Serializable {
         return audience;
     }
 
-    private Boolean ignoreTokenExpiration(JwtTokenHolder token) {
+    private Boolean ignoreTokenExpiration(JWTTokenHolder token) {
         String audience = getAudienceFromToken(token);
         return (AUDIENCE_TABLET.equals(audience) || AUDIENCE_MOBILE.equals(audience));
     }

@@ -8,7 +8,7 @@ import java.io.Serializable;
 /**
  * Created by sorinavasiliu on 7/3/16.
  */
-public class JwtTokenHolder implements Serializable {
+public class JWTTokenHolder implements Serializable {
 
     private static final long serialVersionUID = 1250166508152483573L;
 
@@ -16,13 +16,13 @@ public class JwtTokenHolder implements Serializable {
 
     private TokenType tokenType;
 
-    public JwtTokenHolder(String token, TokenType tokenType) {
+    public JWTTokenHolder(String token, TokenType tokenType) {
 
         this.token = token;
         this.tokenType = tokenType;
     }
 
-    public JwtTokenHolder(String token) {
+    public JWTTokenHolder(String token) {
         this.token = token;
     }
 

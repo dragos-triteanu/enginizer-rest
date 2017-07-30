@@ -1,15 +1,23 @@
 package com.enginizer.config;
 
-import org.springframework.beans.factory.annotation.Value;
+import com.google.common.base.Predicate;
+import com.google.common.base.Predicates;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.mobile.device.Device;
+import org.springframework.context.support.ApplicationObjectSupport;
 import springfox.documentation.builders.ApiInfoBuilder;
+import springfox.documentation.builders.ParameterBuilder;
 import springfox.documentation.builders.RequestHandlerSelectors;
+import springfox.documentation.schema.ModelRef;
 import springfox.documentation.service.ApiInfo;
 import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spring.web.plugins.Docket;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
+
+import java.util.Arrays;
+
+import static com.google.common.base.Predicates.or;
+import static springfox.documentation.builders.PathSelectors.regex;
 
 /**
  * Created by xPku on 8/30/16.
@@ -17,26 +25,53 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 @EnableSwagger2
 @Configuration
-public class SwaggerConfig {
-
-    @Value("${swagger.enabled}")
-    private boolean isSwaggerEnabled;
+public class SwaggerConfig extends ApplicationObjectSupport {
 
     @Bean
-    public Docket newsApi() {
+    public Docket docket() {
         return new Docket(DocumentationType.SWAGGER_2)
-                .ignoredParameterTypes(Device.class)
                 .select()
-                .apis(RequestHandlerSelectors.basePackage("com.enginizer.resources")).build().enable(isSwaggerEnabled)
-                .apiInfo(apiInfo());
+                .apis(RequestHandlerSelectors.basePackage("com.enginizer.resources.auth"))
+                .paths(Predicates.not(authenticationPaths()))
+                .build()
+                .apiInfo(apiInfo())
+                .groupName("Operations")
+                .globalOperationParameters(
+                        Arrays.asList(new ParameterBuilder()
+                                .name("Authorization")
+                                .description("Authorization Token")
+                                .modelRef(new ModelRef("string"))
+                                .parameterType("Header")
+                                .defaultValue("Bearer ")
+                                .required(true)
+                                .build()));
     }
+
+    @Bean
+    public Docket authenticationDocket() {
+        return new Docket(DocumentationType.SWAGGER_2)
+                .select()
+                .apis(RequestHandlerSelectors.basePackage("com.enginizer.resources.api"))
+                .paths(authenticationPaths())
+                .build()
+                .apiInfo(apiInfo())
+                .useDefaultResponseMessages(false)
+                .groupName("Authentication");
+    }
+
 
     private ApiInfo apiInfo() {
         return new ApiInfoBuilder()
                 .title("Enginizer REST")
-                .description("Spring REST template project")
                 .version("1.0")
                 .build();
+
     }
 
+    private Predicate<String> authenticationPaths() {
+        return or(
+                regex("/api/login.*"),
+                regex("/api/passwordrecovery.*"));
+    }
 }
+

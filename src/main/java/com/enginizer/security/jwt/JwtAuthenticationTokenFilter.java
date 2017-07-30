@@ -26,11 +26,13 @@ import java.io.IOException;
  */
 public class JwtAuthenticationTokenFilter extends UsernamePasswordAuthenticationFilter {
 
+    private static final String BEARER_SUFFIX = "Bearer ";
+
     @Autowired
     private UserDetailsService userDetails;
 
     @Autowired
-    private JwtUtil jwtUtil;
+    private JWTUtil jwtUtil;
 
     @Value("${jwt.header}")
     private String tokenHeader;
@@ -42,9 +44,18 @@ public class JwtAuthenticationTokenFilter extends UsernamePasswordAuthentication
         HttpServletResponseWrapper httpResponseWrapper = new HttpServletResponseWrapper(httpResponse);
 
         String authToken = httpRequest.getHeader(tokenHeader);
-        JwtTokenHolder tokenHolder = new JwtTokenHolder(authToken, TokenType.AUTH);
 
-        // authToken.startsWith("Bearer ")
+
+        if(httpRequest.getRequestURI().endsWith("swagger-ui.html")){
+            return;
+        }
+
+        if(null != authToken && authToken.startsWith(BEARER_SUFFIX)){
+            authToken = authToken.replace(BEARER_SUFFIX,"");
+        }
+
+        JWTTokenHolder tokenHolder = new JWTTokenHolder(authToken, TokenType.AUTH);
+
         // String authToken = header.substring(7);
         String username = jwtUtil.getMailFromToken(tokenHolder);
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
