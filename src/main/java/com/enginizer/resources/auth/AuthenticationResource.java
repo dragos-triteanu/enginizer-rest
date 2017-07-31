@@ -30,7 +30,7 @@ import javax.mail.MessagingException;
 /**
  * REST resource that exposes an api for authenticating via the server.
  */
-@Api(value = "Authentication", basePath = "/api")
+@Api(value = "Authentication")
 @RestController
 public class AuthenticationResource {
 

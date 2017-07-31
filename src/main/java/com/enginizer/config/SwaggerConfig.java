@@ -35,7 +35,19 @@ public class SwaggerConfig extends ApplicationObjectSupport {
                 .paths(Predicates.not(authenticationPaths()))
                 .build()
                 .apiInfo(apiInfo())
-                .groupName("Operations")
+                .groupName("Authentication");
+
+    }
+
+    @Bean
+    public Docket authenticationDocket() {
+        return new Docket(DocumentationType.SWAGGER_2)
+                .select()
+                .apis(RequestHandlerSelectors.basePackage("com.enginizer.resources.api"))
+                .build()
+                .apiInfo(apiInfo())
+                .useDefaultResponseMessages(false)
+                .groupName("API")
                 .globalOperationParameters(
                         Arrays.asList(new ParameterBuilder()
                                 .name("Authorization")
@@ -45,18 +57,6 @@ public class SwaggerConfig extends ApplicationObjectSupport {
                                 .defaultValue("Bearer ")
                                 .required(true)
                                 .build()));
-    }
-
-    @Bean
-    public Docket authenticationDocket() {
-        return new Docket(DocumentationType.SWAGGER_2)
-                .select()
-                .apis(RequestHandlerSelectors.basePackage("com.enginizer.resources.api"))
-                .paths(authenticationPaths())
-                .build()
-                .apiInfo(apiInfo())
-                .useDefaultResponseMessages(false)
-                .groupName("Authentication");
     }
 
 
@@ -70,7 +70,6 @@ public class SwaggerConfig extends ApplicationObjectSupport {
 
     private Predicate<String> authenticationPaths() {
         return or(
-                regex("/api/login.*"),
                 regex("/api/passwordrecovery.*"));
     }
 }

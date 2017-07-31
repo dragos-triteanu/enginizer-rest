@@ -7,8 +7,6 @@ spring:
   jackson:
     serialization:
       INDENT_OUTPUT: true
-  thymeleaf:
-    excluded-view-names: "swagger-ui.html"
 
 jwt:
   header: Authorization
@@ -30,4 +28,3 @@ mail:
     subject: Resetare parola
     from: dragos.triteanu@gmail.com
 
-thymeleaf:

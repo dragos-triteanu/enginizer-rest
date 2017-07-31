@@ -3,6 +3,7 @@ package com.enginizer.security.jwt;
 import com.enginizer.enums.TokenType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -10,6 +11,9 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
+import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
+import org.springframework.stereotype.Component;
+import org.springframework.web.filter.OncePerRequestFilter;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -24,7 +28,9 @@ import java.io.IOException;
  * Filter class for parsing a JWT token and extracting the authentication information from the Authorization header.
  * This class parses the JWT token and
  */
-public class JwtAuthenticationTokenFilter extends UsernamePasswordAuthenticationFilter {
+@Component
+@Order
+public class JwtAuthenticationTokenFilter extends OncePerRequestFilter {
 
     private static final String BEARER_SUFFIX = "Bearer ";
 
@@ -37,18 +43,12 @@ public class JwtAuthenticationTokenFilter extends UsernamePasswordAuthentication
     @Value("${jwt.header}")
     private String tokenHeader;
 
+
     @Override
-    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
-        HttpServletRequest httpRequest = (HttpServletRequest) request;
-        HttpServletResponse httpResponse = (HttpServletResponse) response;
+    protected void doFilterInternal(HttpServletRequest httpRequest, HttpServletResponse httpResponse, FilterChain filterChain) throws ServletException, IOException {
         HttpServletResponseWrapper httpResponseWrapper = new HttpServletResponseWrapper(httpResponse);
 
         String authToken = httpRequest.getHeader(tokenHeader);
-
-
-        if(httpRequest.getRequestURI().endsWith("swagger-ui.html")){
-            return;
-        }
 
         if(null != authToken && authToken.startsWith(BEARER_SUFFIX)){
             authToken = authToken.replace(BEARER_SUFFIX,"");
@@ -77,6 +77,6 @@ public class JwtAuthenticationTokenFilter extends UsernamePasswordAuthentication
             httpResponseWrapper.setHeader("Authorization", refreshedToken);
         }
 
-        chain.doFilter(request, httpResponse);
+        filterChain.doFilter(httpRequest, httpResponse);
     }
 }

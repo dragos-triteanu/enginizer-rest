@@ -16,8 +16,8 @@ import javax.mail.internet.MimeMessage;
 @Service
 public class EmailService {
 
-    @Autowired
-    private ContentBuilderService contentBuilderService;
+//    @Autowired
+//    private ContentBuilderService contentBuilderService;
 
     @Autowired
     private JavaMailSender mailSender;
@@ -35,8 +35,8 @@ public class EmailService {
         message.setSubject(subject);
         message.setTo(user.getMail());
 
-        String htmlContent = contentBuilderService.build(user,token);
-        message.setText(htmlContent, true);
+//        String htmlContent = contentBuilderService.build(user,token);
+//        message.setText(htmlContent, true);
 
         // Send email
         this.mailSender.send(mimeMessage);

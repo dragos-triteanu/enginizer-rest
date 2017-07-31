@@ -11,9 +11,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.beans.factory.annotation.Value;
 
 import java.io.Serializable;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by sorinavasiliu on 7/3/16.
@@ -77,6 +75,19 @@ public class JWTUtil implements Serializable {
             audience = null;
         }
         return audience;
+    }
+
+    public JWTTokenHolder generateAnonymosToken() {
+        // generate token
+        Claims claims = Jwts.claims().setSubject("anonymous@geemgi.com");
+        claims.put("role", "ROLE_ANONYMOUS");
+        claims.put("uuid", UUID.randomUUID().toString()); // set a uuid so that every time a token is generated it will be unique
+
+        return new JWTTokenHolder(Jwts.builder()
+                .setClaims(claims)
+                .setExpiration(calculateExpirationDate())
+                .signWith(SignatureAlgorithm.HS512, secret)
+                .compact());
     }
 
     public Boolean canTokenBeRefreshed(JWTTokenHolder token) {
@@ -184,6 +195,13 @@ public class JWTUtil implements Serializable {
     private Boolean ignoreTokenExpiration(JWTTokenHolder token) {
         String audience = getAudienceFromToken(token);
         return (AUDIENCE_TABLET.equals(audience) || AUDIENCE_MOBILE.equals(audience));
+    }
+
+    private Date calculateExpirationDate() {
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(new Date());
+        cal.add(Calendar.YEAR, 100);
+        return cal.getTime();
     }
 
 }
