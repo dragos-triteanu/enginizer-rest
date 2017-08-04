@@ -1,6 +1,5 @@
 package com.enginizer.resources.auth;
 
-import com.enginizer.enums.TokenType;
 import com.enginizer.model.dto.AuthenticationDTO;
 import com.enginizer.model.dto.ChangePasswordDTO;
 import com.enginizer.model.dto.CreateUserDTO;
@@ -9,7 +8,9 @@ import com.enginizer.security.jwt.JWTTokenHolder;
 import com.enginizer.security.jwt.JWTUtil;
 import com.enginizer.service.EmailService;
 import com.enginizer.service.UserService;
-import io.swagger.annotations.*;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -23,8 +24,12 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.*;
-
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import com.enginizer.model.enums.*;
 /**
  * REST resource that exposes an api for authenticating via the server.
  */

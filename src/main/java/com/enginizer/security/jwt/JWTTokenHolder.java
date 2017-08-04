@@ -1,10 +1,9 @@
 package com.enginizer.security.jwt;
 
-import com.enginizer.enums.TokenType;
+import com.enginizer.model.enums.TokenType;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.io.Serializable;
-import org.springframework.security.core.Authentication;
 
 /**
  * Created by sorinavasiliu on 7/3/16.

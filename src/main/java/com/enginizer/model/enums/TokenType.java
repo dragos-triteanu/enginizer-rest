@@ -1,4 +1,4 @@
-package com.enginizer.enums;
+package com.enginizer.model.enums;
 
 /**
  * Created by sorinavasiliu on 1/20/17.

@@ -1,6 +1,6 @@
 package com.enginizer.service;
 
-import com.enginizer.model.Role;
+import com.enginizer.model.enums.Role;
 import com.enginizer.model.entities.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;

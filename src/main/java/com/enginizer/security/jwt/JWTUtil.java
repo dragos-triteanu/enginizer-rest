@@ -1,6 +1,6 @@
 package com.enginizer.security.jwt;
 
-import com.enginizer.enums.TokenType;
+import com.enginizer.model.enums.TokenType;
 import com.enginizer.model.entities.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;

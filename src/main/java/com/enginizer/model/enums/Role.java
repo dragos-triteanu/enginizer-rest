@@ -1,4 +1,4 @@
-package com.enginizer.model;
+package com.enginizer.model.enums;
 
 /**
  * Enum class housing the available roles for the application.

@@ -1,6 +1,6 @@
 package com.enginizer.service;
 
-import com.enginizer.model.Role;
+import com.enginizer.model.enums.Role;
 import com.enginizer.model.dto.CreateUserDTO;
 import com.enginizer.model.dto.UserDTO;
 import com.enginizer.model.entities.User;

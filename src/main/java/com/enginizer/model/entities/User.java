@@ -1,6 +1,6 @@
 package com.enginizer.model.entities;
 
-import com.enginizer.model.Role;
+import com.enginizer.model.enums.Role;
 import io.swagger.annotations.ApiModelProperty;
 import org.hibernate.validator.constraints.Email;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
