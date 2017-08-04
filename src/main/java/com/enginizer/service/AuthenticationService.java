@@ -41,7 +41,7 @@ public class AuthenticationService implements UserDetailsService {
 
     private org.springframework.security.core.userdetails.User getUserDetails(User user){
         return new org.springframework.security.core.userdetails.User
-                (user.getMail(),user.getPassword(),this.mapToGrantedAuthorities(user.getRole()));
+                (user.getEmail(),user.getPassword(),this.mapToGrantedAuthorities(user.getRole()));
     }
 
 }

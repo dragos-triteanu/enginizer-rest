@@ -33,7 +33,7 @@ public class EmailService {
         final MimeMessage mimeMessage = this.mailSender.createMimeMessage();
         final MimeMessageHelper message = new MimeMessageHelper(mimeMessage, "UTF-8");
         message.setSubject(subject);
-        message.setTo(user.getMail());
+        message.setTo(user.getEmail());
 
 //        String htmlContent = contentBuilderService.build(user,token);
 //        message.setText(htmlContent, true);

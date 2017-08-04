@@ -16,21 +16,20 @@ import java.util.List;
 /**
  * REST resource for exposing an API for managing a User entity.
  */
-@Api(value = "API", basePath = "api/user")
+@Api(value = "API", basePath = "${enginizer.api.prefix}"+"/user")
 @RestController
 public class UserResource {
 
-    @Value("${jwt.header}")
+    @Value("${enginizer.jwt.header}")
     private String tokenHeader;
 
     @Autowired
     private UserService userService;
 
     @ApiOperation(value = "Get all users", notes = "Retrieves a list of users by specific search criteria")
-    @RequestMapping(value = "/api/user", method = RequestMethod.GET)
+    @RequestMapping(value = "${enginizer.api.prefix}" + "/user", method = RequestMethod.GET)
     public ResponseEntity<?> getUserDetails() {
         List<UserDTO> users = userService.getUsers();
-
         return ResponseEntity.ok(users);
     }
 }

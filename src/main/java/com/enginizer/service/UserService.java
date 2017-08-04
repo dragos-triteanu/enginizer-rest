@@ -24,7 +24,7 @@ public class UserService {
 
     public User findUserByEmailAddress(final String mail) {
 
-        return userRepository.findByMail(mail);
+        return userRepository.findByEmail(mail);
     }
 
     public List<UserDTO> getUsers(){
@@ -50,7 +50,7 @@ public class UserService {
 
     private User fromCreateUSerDTO(CreateUserDTO dto){
         User user = new User();
-        user.setMail(dto.getEmail());
+        user.setEmail(dto.getEmail());
         user.setPassword(dto.getPassword());
         user.setFirstName(dto.getFirstName());
         user.setLastName(dto.getLastName());
@@ -63,7 +63,7 @@ public class UserService {
     private UserDTO convertUserToDto(User user){
         UserDTO userDTO = new UserDTO();
         userDTO.setUserId(user.getId());
-        userDTO.setUserName(user.getMail());
+        userDTO.setUserName(user.getEmail());
         userDTO.setFirstName(user.getFirstName());
         userDTO.setLastName(user.getLastName());
 

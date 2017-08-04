@@ -30,19 +30,19 @@ public class JWTUtil implements Serializable {
     private static final String AUDIENCE_MOBILE = "mobile";
     private static final String AUDIENCE_TABLET = "tablet";
 
-    @Value("${jwt.secret}")
+    @Value("${enginizer.jwt.secret}")
     private String secret;
 
-    @Value("${jwt.expiration}")
+    @Value("${enginizer.jwt.expiration}")
     private Long expiration;
 
-    @Value("${jwt.forgotPasswordSecret}")
+    @Value("${enginizer.jwt.forgotPasswordSecret}")
     private String forgotPasswordSecret;
 
-    @Value("${jwt.forgotPasswordExpiration}")
+    @Value("${enginizer.jwt.forgotPasswordExpiration}")
     private Long forgotPasswordExpiration;
 
-    public String getMailFromToken(JWTTokenHolder token) {
+    public String getEmailFromToken(JWTTokenHolder token) {
         String username;
         try {
             final Claims claims = getClaimsFromToken(token);
@@ -108,7 +108,7 @@ public class JWTUtil implements Serializable {
 
     public Boolean validateToken(JWTTokenHolder token, String userName) {
 
-        final String username = getMailFromToken(token);
+        final String username = getEmailFromToken(token);
 
         if(token.getTokenType()==TokenType.AUTH) {
             return (username.equals(userName)
@@ -134,7 +134,7 @@ public class JWTUtil implements Serializable {
 
     public String generateForgotPasswordToken(User user, Device device) {
         return Jwts.builder()
-                .setClaims(generateClaims(user.getMail(),device))
+                .setClaims(generateClaims(user.getEmail(),device))
                 .setExpiration(new Date(System.currentTimeMillis() + forgotPasswordExpiration * 1000))
                 .signWith(SignatureAlgorithm.HS256, forgotPasswordSecret)
                 .compact();

@@ -22,9 +22,9 @@ public class User{
     @ApiModelProperty(name = "Identifier of the user")
     private int id;
 
-    @Column(name = "mail", nullable = false)
+    @Column(name = "email", nullable = false)
     @Email(message = "client.email.notEmail")
-    private String mail;
+    private String email;
 
     @Column(name = "password", nullable = false)
     private String password;
@@ -60,12 +60,12 @@ public class User{
         this.id = id;
     }
 
-    public String getMail() {
-        return mail;
+    public String getEmail() {
+        return email;
     }
 
-    public void setMail(String mail) {
-        this.mail = mail;
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public String getPassword() {

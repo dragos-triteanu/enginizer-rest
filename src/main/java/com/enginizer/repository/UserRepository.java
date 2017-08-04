@@ -15,7 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 @Repository
 public interface UserRepository extends JpaRepository<User, Integer> {
-    User findByMail(String mail);
+    User findByEmail(String email);
 
     @Modifying
     @Query("Update User u SET  u.password = :password WHERE u.id= :userId")

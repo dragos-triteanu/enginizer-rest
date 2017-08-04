@@ -3,10 +3,12 @@ package com.enginizer.config;
 import com.enginizer.security.jwt.JwtAuthenticationEntryPoint;
 import com.enginizer.security.jwt.JwtAuthenticationTokenFilter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -39,6 +41,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
     private JwtAuthenticationTokenFilter jwtAuthenticationTokenFilter;
 
+    @Value("${enginizer.api.prefix}")
+    private String apiPrefix;
+
     @Override
     protected void configure(HttpSecurity httpSecurity) throws Exception {
         httpSecurity
@@ -48,34 +53,34 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 // don't create session
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
 
-                .authorizeRequests()
-                .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                    .authorizeRequests()
+                        .antMatchers(apiPrefix + "/**").authenticated().and()
+                    .authorizeRequests()
+                        .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 // allow anonymous resource requests
-                .antMatchers("/auth/**").permitAll()
-                .antMatchers(HttpMethod.GET,
-                        "/",
-                        "/swagger/**",
-                        "/swagger-ui.html",
-                        "/v2/**",
-                        "/webjars/**",
-                        "/*.html",
-                        "*/favicon.ico",
-                        "/**/*.html",
-                        "/**/*.css",
-                        "/**/*.js"
-                ).permitAll();
+                        .antMatchers(HttpMethod.POST,apiPrefix + "/login").permitAll()
+                        .antMatchers(HttpMethod.POST, apiPrefix + "/register").permitAll()
+                        .antMatchers("/console").permitAll() // H2 Console Dash-board - only for testing
+                        .antMatchers(HttpMethod.GET,
+                                "/",
+                                "/swagger/**",
+                                "/swagger-ui.html",
+                                "/v2/**",
+                                "/webjars/**",
+                                "/*.html",
+                                "*/favicon.ico",
+                                "/**/*.html",
+                                "/**/*.css",
+                                "/**/*.js").permitAll();
 
 
         // Custom JWT based security filter
         httpSecurity.addFilterBefore(jwtAuthenticationTokenFilter, UsernamePasswordAuthenticationFilter.class);
-
-        // disable page caching
-        httpSecurity.headers().cacheControl();
     }
 
     @Override
     public void configure(WebSecurity web) throws Exception {
-        web.ignoring().antMatchers("/v2/api-docs", "/configuration/ui", "/swagger-resources", "/configuration/security", "/swagger-ui.html", "/webjars/**");
+        web.ignoring().antMatchers("/v2/api-docs", "/configuration/ui", "/swagger-resources", "/configuration/security", "/swagger-ui.html", "/webjars/**", apiPrefix + "/login", apiPrefix + "/register");
     }
 
 

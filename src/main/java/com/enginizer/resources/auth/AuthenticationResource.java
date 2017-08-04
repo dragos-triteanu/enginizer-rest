@@ -25,8 +25,6 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
-import javax.mail.MessagingException;
-
 /**
  * REST resource that exposes an api for authenticating via the server.
  */
@@ -34,7 +32,7 @@ import javax.mail.MessagingException;
 @RestController
 public class AuthenticationResource {
 
-    @Value("${jwt.header}")
+    @Value("${enginizer.jwt.header}")
     private String authenticationHeader;
 
     @Autowired
@@ -53,7 +51,7 @@ public class AuthenticationResource {
     private EmailService emailService;
 
     @ApiOperation(value = "Authenticate", notes = "Provides authentication for a user to use the API.")
-    @RequestMapping(value = "${route.authentication.login}", method = RequestMethod.POST, consumes = "application/json")
+    @RequestMapping(value = "${enginizer.api.prefix}" + "/login", method = RequestMethod.POST, consumes = "application/json")
     public ResponseEntity<?> authenticate(@RequestBody @ApiParam(name = "auth", required = true) AuthenticationDTO auth, Device device)
             throws AuthenticationException {
 
@@ -70,7 +68,7 @@ public class AuthenticationResource {
     }
 
     @ApiOperation(value = "Register", notes = "Provides ability so that user can register.")
-    @RequestMapping(value = "api/register", method = RequestMethod.POST)
+    @RequestMapping(value = "${enginizer.api.prefix}" + "/register", method = RequestMethod.POST)
     public ResponseEntity<?> register(@RequestBody @ApiParam(name = "user", required = true) CreateUserDTO user,
                                       Device device) {
         if (StringUtils.isEmpty(user.getPassword()) || user.getPassword() == null) {
@@ -96,7 +94,7 @@ public class AuthenticationResource {
         return this.authenticate(auth, device);
     }
 
-    @RequestMapping(value = "${route.authentication.password.forgot}", method = RequestMethod.POST)
+    @RequestMapping(value = "${enginizer.api.prefix}" + "/password/forgot", method = RequestMethod.POST)
     public ResponseEntity<?> forgotPassword(@RequestBody @ApiParam(name = "auth", required = true) AuthenticationDTO auth, Device device) {
 
         User userDetails = userService.findUserByEmailAddress(auth.getEmail());
@@ -107,15 +105,14 @@ public class AuthenticationResource {
         String token = jwtUtil.generateForgotPasswordToken(userDetails, device);
         try {
             emailService.prepareAndSend(userDetails, token);
-        } catch (MessagingException ex) {
+        } catch (Exception ex) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error sending mail.");
         }
 
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-
-    @RequestMapping(value = "api/password/reset", method = RequestMethod.GET)
+    @RequestMapping(value = "${enginizer.api.prefix}" + "/password/reset", method = RequestMethod.GET)
     public ResponseEntity<?> resetPassword(@RequestParam("token") @ApiParam(name = "token") String token)
     {
         JWTTokenHolder jwtToken = new JWTTokenHolder(token, TokenType.PASSWORD);
@@ -127,7 +124,7 @@ public class AuthenticationResource {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @RequestMapping(value = "api/password/reset", method = RequestMethod.POST)
+    @RequestMapping(value = "${enginizer.api.prefix}" + "/password/reset", method = RequestMethod.POST)
     public ResponseEntity<?> resetPassword(@RequestBody @ApiParam(name="changePassword") ChangePasswordDTO changePassword, Device device)
     {
         User userDetails = userService.findUserByEmailAddress(changePassword.getEmail());
